@@ -1,10 +1,10 @@
-package dev.danascape.stormci.api
+package dev.danascape.stormci.api.client
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object APIClient {
-    private val BASE_URL = "https://abhiramshibu.tuxforums.com/~saalim/"
+object DroneClient {
+    private val BASE_URL = "https://cloud.drone.io/api/repos/stormbreaker-project/StormCIApp/"
     private var mRetrofit: Retrofit? = null
     val client: Retrofit
         get() {
@@ -14,6 +14,6 @@ object APIClient {
                     .baseUrl(BASE_URL)
                     .build()
             }
-            return this.mRetrofit!!
+            return mRetrofit!!
         }
 }

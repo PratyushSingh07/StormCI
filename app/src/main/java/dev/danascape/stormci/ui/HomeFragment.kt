@@ -1,20 +1,14 @@
 package dev.danascape.stormci.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import dev.danascape.stormci.api.APIClient
-import dev.danascape.stormci.api.DevicesService
-import dev.danascape.stormci.api.HomeService
+import androidx.fragment.app.FragmentTransaction
+import dev.danascape.stormci.R
 import dev.danascape.stormci.databinding.FragmentHomeBinding
-import dev.danascape.stormci.model.BuildModel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import dev.danascape.stormci.ui.home.BuildHistoryFragment
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -23,8 +17,6 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding
     get() = _binding!!
-
-    private var mApiService: HomeService? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +27,6 @@ class HomeFragment : Fragment() {
 
         val kernelVersion = readKernelVersion()
         binding.tvKernel.text = kernelVersion
-
         val deviceName = readDeviceName()
         binding.tvDeviceName.text = deviceName
 
@@ -45,37 +36,13 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        mApiService = APIClient.client.create(HomeService::class.java)
-        fetchUpdate()
-        binding.btnRefresh.setOnClickListener {
-            fetchUpdate()
+        binding.btnHistory.setOnClickListener {
+            val BuildHistoryFragment = BuildHistoryFragment()
+            val transaction: FragmentTransaction = requireFragmentManager().beginTransaction()
+            transaction.replace(R.id.flFragment, BuildHistoryFragment)
+            transaction.commit()
         }
     }
-
-    private fun fetchUpdate() {
-        val retrofit = mApiService!!.getBuildInfo()
-        retrofit.enqueue(object: Callback<BuildModel> {
-
-            @SuppressLint("SetTextI18n")
-            override fun onResponse(call: Call<BuildModel>, response: Response<BuildModel>) {
-                val resBody = response.body()
-                if(resBody != null){
-                    Log.d("retrofitResponse", "res: $resBody")
-                    Log.d("retrofitResponse", "name: ${resBody.name} ${resBody.branch}")
-                    binding.tvName.text = "${resBody.name} ${resBody.branch}"
-                    Log.d("retrofitResponse", "device: ${resBody.device}")
-                    binding.tvDevice.text = "Device: ${resBody.device}"
-                    Log.d( "retrofitResponse", "Build Status: ${resBody.status}" )
-                    binding.tvStatus.text = "Status: ${resBody.status}"
-                }
-            }
-
-            override fun onFailure(call: Call<BuildModel>, t: Throwable) {
-                Log.e("retrofitResponse","Error: ${t.message}")
-            }
-        })
-    }
-
     private fun readKernelVersion(): String {
         try {
             val p = Runtime.getRuntime().exec("uname -r")
